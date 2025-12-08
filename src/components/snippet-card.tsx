@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { type Snippet } from "@/types";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Trash2, Tag, X } from "lucide-react";
+import { Copy, Trash2, Tag, X, Edit, Save } from "lucide-react";
+import { Textarea } from "./ui/textarea";
 
 interface SnippetCardProps {
   snippet: Snippet;
@@ -18,6 +19,16 @@ interface SnippetCardProps {
 
 export function SnippetCard({ snippet, onUpdate, onDelete, onCopy }: SnippetCardProps) {
   const [tagInput, setTagInput] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedContent, setEditedContent] = useState(snippet.content);
+  const editAreaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isEditing && editAreaRef.current) {
+      editAreaRef.current.focus();
+      editAreaRef.current.select();
+    }
+  }, [isEditing]);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim()) {
@@ -32,6 +43,11 @@ export function SnippetCard({ snippet, onUpdate, onDelete, onCopy }: SnippetCard
     const newTags = snippet.tags.filter((tag) => tag !== tagToRemove);
     onUpdate({ ...snippet, tags: newTags });
   };
+  
+  const handleSave = () => {
+    onUpdate({ ...snippet, content: editedContent });
+    setIsEditing(false);
+  };
 
   return (
     <Card className="flex flex-col h-full transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:border-primary/50">
@@ -42,6 +58,15 @@ export function SnippetCard({ snippet, onUpdate, onDelete, onCopy }: SnippetCard
           </CardTitle>
         </div>
         <div className="flex items-center gap-1">
+          {isEditing ? (
+             <Button variant="ghost" size="icon" onClick={handleSave} aria-label="Save snippet">
+              <Save className="h-5 w-5" />
+            </Button>
+          ) : (
+            <Button variant="ghost" size="icon" onClick={() => setIsEditing(true)} aria-label="Edit snippet">
+              <Edit className="h-5 w-5" />
+            </Button>
+          )}
           <Button variant="ghost" size="icon" onClick={() => onCopy(snippet.content)} aria-label="Copy snippet">
             <Copy className="h-5 w-5" />
           </Button>
@@ -51,9 +76,18 @@ export function SnippetCard({ snippet, onUpdate, onDelete, onCopy }: SnippetCard
         </div>
       </CardHeader>
       <CardContent className="flex-grow">
-        <pre className="bg-background rounded-md p-4 text-sm overflow-x-auto max-h-48">
-          <code>{snippet.content}</code>
-        </pre>
+        {isEditing ? (
+          <Textarea
+            ref={editAreaRef}
+            value={editedContent}
+            onChange={(e) => setEditedContent(e.target.value)}
+            className="text-sm h-full max-h-48"
+          />
+        ) : (
+          <pre className="bg-background rounded-md p-4 text-sm overflow-x-auto max-h-48 whitespace-pre-wrap break-words">
+            <code>{snippet.content}</code>
+          </pre>
+        )}
       </CardContent>
       <CardFooter className="flex flex-col items-start gap-4">
         <div className="flex flex-wrap gap-2">

@@ -14,11 +14,8 @@ export function SnippetForm({ onAddSnippet }: SnippetFormProps) {
   const [content, setContent] = useState("");
 
   const handlePaste = async (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    event.preventDefault();
     const pastedText = event.clipboardData.getData("text");
     setContent(pastedText);
-    onAddSnippet(pastedText);
-    setTimeout(() => setContent(""), 100);
   };
   
   const handleSubmit = (event: React.FormEvent) => {
@@ -33,7 +30,7 @@ export function SnippetForm({ onAddSnippet }: SnippetFormProps) {
     <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle>Capture a New Snippet</CardTitle>
-        <CardDescription>Paste text into the box below. It will be saved automatically.</CardDescription>
+        <CardDescription>Paste text into the box below and click save.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
